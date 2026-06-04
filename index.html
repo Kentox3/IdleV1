@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Idle Pokémon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<!-- ══ LADE-SCREEN ══════════════════════════════════════════ -->
+<div id="loadScreen">
+  <div class="load-ball">⚪</div>
+  <div class="load-title">Idle Pokémon</div>
+  <div class="load-sub" id="loadStatus">Verbinde mit Firebase…</div>
+</div>
+
+<!-- ══ AUTH-SCREEN ══════════════════════════════════════════ -->
+<div id="authScreen" hidden>
+  <div class="auth-bg">
+    <div class="auth-card">
+      <div class="auth-logo">🎮</div>
+      <h1 class="auth-title">Idle Pokémon</h1>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin"    onclick="showAuthTab('login')">Anmelden</button>
+        <button class="auth-tab"        id="tabRegister" onclick="showAuthTab('register')">Registrieren</button>
+      </div>
+
+      <!-- Login -->
+      <div id="loginForm">
+        <input type="email"    id="loginEmail"    class="auth-input" placeholder="E-Mail"   autocomplete="email">
+        <input type="password" id="loginPassword" class="auth-input" placeholder="Passwort" autocomplete="current-password">
+        <button class="auth-btn" onclick="doLogin()">Anmelden</button>
+      </div>
+
+      <!-- Registrierung -->
+      <div id="registerForm" hidden>
+        <input type="text"     id="regName"     class="auth-input" placeholder="Trainername (2–20 Zeichen)" maxlength="20">
+        <input type="email"    id="regEmail"    class="auth-input" placeholder="E-Mail"                      autocomplete="email">
+        <input type="password" id="regPassword" class="auth-input" placeholder="Passwort (min. 6 Zeichen)"  autocomplete="new-password">
+        <button class="auth-btn" onclick="doRegister()">Abenteuer starten! 🎒</button>
+      </div>
+
+      <div id="authMsg" class="auth-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SPIEL-SCREEN ═════════════════════════════════════════ -->
+<div id="gameScreen" hidden>
+
+  <!-- Header -->
+  <header id="header">
+    <div id="hLeft">
+      <span>💰</span>
+      <span id="hCoins">0</span>
+      <span class="h-cur">₽</span>
+    </div>
+    <div id="hMid">Idle Pokémon</div>
+    <div id="hRight">
+      <span id="hIncome" class="h-inc">+0/s</span>
+      <button class="h-logout" onclick="doLogout()" title="Abmelden">⏏</button>
+    </div>
+  </header>
+
+  <!-- Haupt-Bereich -->
+  <main id="main">
+
+    <!-- ─── ROUTE ─────────────────────────────────────── -->
+    <div id="viewRoute" class="view active">
+
+      <div class="card" id="routeHeader">
+        <div class="card-title" id="rName">Route 1</div>
+        <div class="card-sub"   id="rDesc">Beginn deiner Reise</div>
+        <div class="card-trainer">🧑‍🦯 Trainer: <span id="rTrainerName">-</span></div>
+      </div>
+
+      <!-- Encounter-Zone -->
+      <div id="encZone" class="enc-zone">
+        <!-- Timer -->
+        <div id="encWait">
+          <div class="enc-label">Nächste Begegnung</div>
+          <div class="timer-bar"><div id="encFill" class="timer-fill"></div></div>
+          <div id="encTime" class="timer-txt">30s</div>
+        </div>
+        <!-- Pokémon-Begegnung -->
+        <div id="encShow" hidden>
+          <div id="encText"   class="enc-text">Ein wildes Pokémon taucht auf!</div>
+          <div id="encRarity" class="enc-rar"></div>
+          <img id="encSprite" class="enc-sprite" src="" alt="">
+          <div id="encResult" class="enc-result"></div>
+        </div>
+      </div>
+
+      <div class="section-title">Routen</div>
+      <div id="routeGrid" class="route-grid"></div>
+    </div>
+
+    <!-- ─── TEAM ──────────────────────────────────────── -->
+    <div id="viewTeam" class="view">
+      <div class="view-hdr">
+        <span class="view-title">👜 Mein Team</span>
+        <span id="teamIncome" class="badge-inc">+0/s</span>
+      </div>
+      <div id="partyGrid" class="party-grid"></div>
+      <div class="section-title" style="margin-top:14px">📦 Box (Schnellzugriff)</div>
+      <div id="miniBox" class="mini-box"></div>
+    </div>
+
+    <!-- ─── BOX ───────────────────────────────────────── -->
+    <div id="viewBox" class="view">
+      <div class="view-hdr">
+        <span class="view-title">📦 Pokébox</span>
+        <span id="boxCount" class="badge-neu">0/30</span>
+      </div>
+      <div id="boxGrid" class="box-grid"></div>
+    </div>
+
+    <!-- ─── SHOP ──────────────────────────────────────── -->
+    <div id="viewShop" class="view">
+      <div class="view-title" style="margin-bottom:12px">🛒 Shop</div>
+      <div id="upgradeList"></div>
+
+      <div class="section-title" style="margin-top:16px">🔁 Neue Reise (Prestige)</div>
+      <div class="rebirth-card">
+        <div id="rebirthDesc" class="rb-desc">Starte neu für +10% dauerhaften Einnahmen-Bonus</div>
+        <div id="rebirthReq"  class="rb-req">Benötigt: 100 Mio ₽ insgesamt</div>
+        <button id="rebirthBtn" class="rb-btn" onclick="doRebirth()" disabled>Neue Reise starten</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Tab-Leiste -->
+  <nav id="tabs">
+    <button class="tab active" onclick="switchView('Route',this)">🌿<br><span>Route</span></button>
+    <button class="tab"        onclick="switchView('Team',this)" >👜<br><span>Team</span></button>
+    <button class="tab"        onclick="switchView('Box',this)"  >📦<br><span>Box</span></button>
+    <button class="tab"        onclick="switchView('Shop',this)" >🛒<br><span>Shop</span></button>
+  </nav>
+
+</div><!-- /#gameScreen -->
+
+<!-- ══ OFFLINE-MODAL ════════════════════════════════════════ -->
+<div id="offlineModal" class="modal-wrap" hidden>
+  <div class="modal-bg"   onclick="closeModal('offlineModal')"></div>
+  <div class="modal-card">
+    <div class="modal-title">🌙 Willkommen zurück!</div>
+    <div id="offlineBody"></div>
+    <button class="modal-btn" onclick="closeModal('offlineModal')">Weiterspielen! 🎮</button>
+  </div>
+</div>
+
+<!-- ══ POKÉMON-DETAIL-MODAL ══════════════════════════════════ -->
+<div id="pokeModal" class="modal-wrap" hidden>
+  <div class="modal-bg"   onclick="closeModal('pokeModal')"></div>
+  <div class="modal-card poke-modal" id="pokeModalCard"></div>
+</div>
+
+<!-- ══ TOAST-ZONE ═══════════════════════════════════════════ -->
+<div id="toastZone"></div>
+
+<!-- Skripte (Reihenfolge wichtig!) -->
+<script src="js/config.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script type="module" src="js/db.js"></script>
+
+</body>
+</html>
